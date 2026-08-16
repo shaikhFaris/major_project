@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/*
+  Design tokens (dark-first "cockpit" theme, per design-taste skill)
+  - Neutral family: zinc (cool, true-neutral). No gray/slate mixing.
+  - Single accent: emerald. Used for interactive emphasis, active nav, links, chart primary.
+  - Semantic colors (red/sky/amber) reserved for data/status only.
+  - Fonts: Geist Variable (UI) + Geist Mono Variable (numerals, data, labels).
+  - Shape system: inputs/buttons rounded-lg (8px), cards rounded-xl (12px), pills/badges full.
+  - No pure #000 / #fff anywhere.
+*/
+
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-zinc-950 text-zinc-200 antialiased font-sans;
+  }
+
+  ::selection {
+    background: rgb(16 185 129 / 0.25);
+    color: #fafafa;
+  }
+
+  /* Accessible focus: emerald ring on anything keyboard-focused */
+  :focus-visible {
+    outline: 2px solid #34d399;
+    outline-offset: 2px;
+  }
+
+  /* Custom scrollbar, zinc-tinted */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #09090b;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 6px;
+    border: 2px solid #09090b;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
+  }
+}
+
+/* Skeleton loading shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #18181b 25%,
+    #27272a 50%,
+    #18181b 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Route content enter: subtle fade + rise (MOTION 4) */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: page-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Motion must honor prefers-reduced-motion (skill 6.B) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

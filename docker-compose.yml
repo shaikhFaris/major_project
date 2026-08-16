@@ -1,0 +1,8 @@
+services:
+  postgres:
+    image: postgres
+    container_name: market-sim-db
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_PASSWORD: market_sim_dev

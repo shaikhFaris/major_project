@@ -5,35 +5,32 @@
 > rather than letting completed clutter build up — `DECISIONS.md` is where the
 > historical "why" lives, not this file.
 
-## Current phase: Phase 0 → Phase 1 (see `ROADMAP.md`)
+## ✅ Phase 0 — Scaffolding (complete)
 
-## Right now
-- [ ] Initialize repo structure: `/frontend`, `/backend`, `/ml-service`, `/docs`
-- [ ] `backend`: `npm init -y`, install `express`, `dotenv`, `pg` (or an ORM —
-      see "Blocked" below), `jsonwebtoken`, `bcrypt`, `cors`
-- [ ] `frontend`: scaffold with Vite + React, install Tailwind CSS and Chart.js
-      (or `react-chartjs-2`)
-- [ ] Set up PostgreSQL locally (or via Docker) and create the Phase 1 tables from
-      `docs/DATABASE.md`
-- [ ] Backend: `GET /health` endpoint returning `{ success: true, data: { status: "ok" } }`
-- [ ] Backend: `.env.example` with `DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME,
-      JWT_SECRET, PORT`
+- [x] Initialize repo structure: `/frontend`, `/backend`, `/ml-service`, `/docs`
+- [x] `backend`: npm init, installed Express, Drizzle, pg, JWT, bcrypt, cors
+- [x] `frontend`: scaffolded with Vite + React + Tailwind + Chart.js
+- [x] PostgreSQL connected; Drizzle migrations generated and applied
+- [x] Backend: `GET /health` endpoint
+- [x] Backend: `.env.example` and `.env`
+- [x] Docker Compose for PostgreSQL container
+- [x] Root Makefile and .gitignore
 
-## Next
-- [ ] Auth: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, JWT middleware
-- [ ] Business creation: CRUD endpoints (`docs/API.md`) + form on the frontend
-- [ ] Market configuration: CRUD endpoints + form on the frontend
-- [ ] Simulation engine v1 — deterministic period-by-period updates (see
-      `ARCHITECTURE.md` → "Request lifecycle example")
-- [ ] `POST /simulations`, `POST /simulations/:id/run`, `GET /simulations/:id/results`,
-      `GET /simulations` (history)
-- [ ] Dashboard v1: revenue / profit / demand / inventory KPI cards + revenue trend
-      and profit trend charts
+## ✅ Phase 1 — MVP Core (complete — needs testing)
 
-## Blocked / needs a decision
-- [ ] Which ORM/migration tool for PostgreSQL? (Prisma vs. Knex vs. raw `pg` + hand-
-      written migrations) — log the choice in `DECISIONS.md` once picked
-- [ ] Hosting/deployment target — deferred to Phase 4, no action needed yet
+- [x] Auth: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, JWT middleware
+- [x] Business creation: CRUD endpoints + frontend form
+- [x] Market configuration: CRUD endpoints + frontend form
+- [x] Simulation engine v1 — deterministic period-by-period formulas
+- [x] `POST /simulations`, `POST /simulations/:id/run`, `GET /simulations/:id/results`, `GET /simulations`
+- [x] Dashboard: revenue/profit/demand KPI cards + revenue/profit trend charts + results table
+- [x] Frontend: Login, Register, Business list/form, Market config form, Simulations list, Simulation results
+
+## Currently blocked
+- [ ] Run second Drizzle migration (schema changed — added `units_sold` and `cost` to `simulation_results`)
+- [ ] `cd frontend && npm install` (install frontend dependencies)
+- [ ] `cd frontend && npx tsc --noEmit` (verify TypeScript compiles)
+- [ ] Test full loop end-to-end: register → create business → market config → run simulation → view dashboard
 
 ## Do not start yet (Phase 2+, out of scope for now)
 - Individual customer/competitor agents

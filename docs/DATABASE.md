@@ -73,8 +73,10 @@ to exist to start building — don't create Phase 2/3 tables early "just in case
 | profit | DECIMAL(14,2) | |
 | market_share | DECIMAL(5,2) | percentage |
 | demand | INT | units |
+| units_sold | INT | actual units sold (added Phase 1) |
 | inventory_level | INT | |
-| consumer_satisfaction | DECIMAL(5,2) | 0–100 or 0–1, pick one and stay consistent |
+| consumer_satisfaction | DECIMAL(5,2) | 0–100 |
+| cost | DECIMAL(14,2) | total cost for the period (added Phase 1) |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
 
 **Note:** `simulation_results` is append-only per period — don't overwrite rows.

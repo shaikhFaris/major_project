@@ -8,23 +8,27 @@ Combines market simulation, agent-based modeling, and machine learning into a
 decision-support tool — a business flight simulator instead of trial-and-error.
 
 ## Status
+
 🚧 Early development — **Phase 1: MVP Core**. See [`docs/ROADMAP.md`](docs/ROADMAP.md)
 for the full phased build plan and [`docs/TODO.md`](docs/TODO.md) for active tasks.
 
 ## Tech stack
-| Layer | Tech |
-|---|---|
-| Frontend | React, Tailwind CSS, Chart.js |
-| Backend | Node.js, Express |
+
+| Layer      | Tech                                                                 |
+| ---------- | -------------------------------------------------------------------- |
+| Frontend   | React, Tailwind CSS, Chart.js                                        |
+| Backend    | Node.js, Express                                                     |
 | ML Service | Python, FastAPI, scikit-learn, XGBoost, Pandas, NumPy (from Phase 2) |
-| Database | PostgreSQL |
+| Database   | PostgreSQL                                                           |
 
 ## Prerequisites
+
 - Node.js 20+
 - Python 3.11+ (only needed from Phase 2 onward)
 - PostgreSQL 16+ (or Docker, if you'd rather run it in a container)
 
 ## Getting started
+
 ```bash
 git clone <repo-url>
 cd <repo>
@@ -47,6 +51,7 @@ uvicorn main:app --reload
 ```
 
 ## Project structure
+
 ```
 /frontend        React app (dashboard, forms, charts)
 /backend          Node/Express API
@@ -57,7 +62,9 @@ AGENTS.md
 ```
 
 ## Documentation
+
 - [`AGENTS.md`](AGENTS.md) — instructions for AI coding agents working in this repo
+- [`instructions.md`](instructions.md) — execution/permission boundaries (no running scripts, DB clients, or Docker without asking)
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system design and module breakdown
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — phased build plan
 - [`docs/TODO.md`](docs/TODO.md) — active task list

@@ -2,7 +2,7 @@ import { Router, Response } from "express";
 import { db, schema } from "../db/index.js";
 import { eq, desc } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth.js";
-import { runSimulation, BusinessInput, MarketInput } from "../engine/simulation.js";
+import { runSimulation, runAdvancedStrategySimulation, BusinessInput, MarketInput, StrategyInput } from "../engine/simulation.js";
 
 export const simulationsRouter = Router();
 simulationsRouter.use(authMiddleware);
@@ -45,7 +45,7 @@ simulationsRouter.get("/", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// POST /api/simulations
+// POST /api/simulations — Create new simulation entry
 simulationsRouter.post("/", async (req: AuthRequest, res: Response) => {
   try {
     const { businessId, marketConfigId, strategyLabel } = req.body;
@@ -70,6 +70,79 @@ simulationsRouter.post("/", async (req: AuthRequest, res: Response) => {
   } catch (err) {
     console.error("Create simulation error:", err);
     return res.status(500).json({ success: false, data: null, error: "Failed to create simulation" });
+  }
+});
+
+// POST /api/simulations/run-advanced — Run ML-driven strategy simulation with uncertainty & constraints
+simulationsRouter.post("/run-advanced", async (req: AuthRequest, res: Response) => {
+  try {
+    const strategy: StrategyInput = req.body;
+
+    if (!strategy || !strategy.sellingPrice) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: "Invalid strategy parameters. Expected sellingPrice and marketingBudget.",
+      });
+    }
+
+    const result = runAdvancedStrategySimulation(strategy);
+
+    return res.json({
+      success: true,
+      data: result,
+      error: null,
+    });
+  } catch (err) {
+    console.error("Advanced simulation error:", err);
+    return res.status(500).json({ success: false, data: null, error: "Failed to execute strategy simulation" });
+  }
+});
+
+// POST /api/simulations/compare-scenarios — Run multi-strategy side-by-side simulation
+simulationsRouter.post("/compare-scenarios", async (req: AuthRequest, res: Response) => {
+  try {
+    const { strategies, targetObjective = "profit" } = req.body;
+
+    const defaultStrategies: StrategyInput[] = strategies && Array.isArray(strategies) && strategies.length > 0
+      ? strategies
+      : [
+          { strategyName: "Baseline Strategy A", sellingPrice: 999, marketingBudget: 50000, timePeriodMonths: 12 },
+          { strategyName: "Price Cut Strategy B", sellingPrice: 899, marketingBudget: 50000, timePeriodMonths: 12 },
+          { strategyName: "Aggressive Marketing Strategy C", sellingPrice: 899, marketingBudget: 75000, timePeriodMonths: 12 },
+        ];
+
+    const results = defaultStrategies.map((strat) => {
+      return runAdvancedStrategySimulation({ ...strat, targetObjective });
+    });
+
+    // Rank strategies based on objective
+    const ranked = [...results].sort((a, b) => {
+      if (targetObjective === "revenue") return b.summary.totalRevenue - a.summary.totalRevenue;
+      if (targetObjective === "sales") return b.summary.totalUnitsSold - a.summary.totalUnitsSold;
+      if (targetObjective === "market_share") return b.summary.avgMarketShare - a.summary.avgMarketShare;
+      if (targetObjective === "minimize_risk") {
+        const riskScoreMap = { Low: 1, Medium: 2, High: 3 };
+        return riskScoreMap[a.summary.riskScore] - riskScoreMap[b.summary.riskScore];
+      }
+      return b.summary.totalProfit - a.summary.totalProfit; // default: profit
+    });
+
+    const topPickName = ranked[0].strategyName;
+
+    return res.json({
+      success: true,
+      data: {
+        results,
+        topPickName,
+        targetObjective,
+        recommendation: `Strategy "${topPickName}" is estimated to yield the highest outcome under your objective to ${targetObjective.replace("_", " ")}.`,
+      },
+      error: null,
+    });
+  } catch (err) {
+    console.error("Compare scenarios error:", err);
+    return res.status(500).json({ success: false, data: null, error: "Failed to compare scenarios" });
   }
 });
 
@@ -137,7 +210,7 @@ simulationsRouter.post("/:id/run", async (req: AuthRequest, res: Response) => {
     const numPeriods = Number(req.query.periods) || 12;
     const results = runSimulation(businessInput, marketInput, numPeriods);
 
-    // Persist results — now includes unitsSold and cost
+    // Persist results
     const insertResults = results.map(r => ({
       simulationId: simId,
       period: r.period,

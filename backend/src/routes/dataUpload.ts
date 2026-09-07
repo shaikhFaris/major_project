@@ -40,6 +40,14 @@ dataUploadRouter.post("/validate", (req, res) => {
     });
   }
 
+  if (rows.some((row: unknown) => !row || typeof row !== "object" || Array.isArray(row))) {
+    return res.status(400).json({
+      success: false,
+      data: null,
+      error: "Each uploaded row must be an object with CSV column names as keys.",
+    });
+  }
+
   const validationSummary = validateDataset(rows);
   res.json({
     success: true,

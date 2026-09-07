@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { ArrowsLeftRight, Trophy, Sparkle, Target, Play, Faders } from "@phosphor-icons/react";
 import { Bar } from "react-chartjs-2";
 import { API_BASE, getAuthHeaders } from "../lib/auth";
+import { useActiveBusiness } from "../lib/businessContext";
 
 interface ScenarioResult {
   strategyName: string;
@@ -24,17 +25,50 @@ interface ScenarioResult {
 }
 
 export default function StrategyComparison() {
+  const { activeBusiness } = useActiveBusiness();
   const [scenarios, setScenarios] = useState<ScenarioResult[]>([]);
   const [topPickName, setTopPickName] = useState<string>("");
   const [recommendation, setRecommendation] = useState<string>("");
   const [targetObjective, setTargetObjective] = useState<"profit" | "revenue" | "sales" | "market_share" | "minimize_risk">("profit");
   const [loading, setLoading] = useState(false);
 
+  const basePrice = activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 999;
+  const baseMkt = activeBusiness?.marketingBudget ? Number(activeBusiness.marketingBudget) : 50000;
+  const companyName = activeBusiness?.companyName || "Strategy";
+
   const [strategyInputs, setStrategyInputs] = useState([
-    { id: 'A', name: "Strategy A (Baseline)", sellingPrice: 999, marketingBudget: 50000 },
-    { id: 'B', name: "Strategy B (Lower Price)", sellingPrice: 899, marketingBudget: 50000 },
-    { id: 'C', name: "Strategy C (Aggressive)", sellingPrice: 899, marketingBudget: 75000 },
+    {
+      id: 'A',
+      name: `${companyName} A (Baseline)`,
+      sellingPrice: basePrice,
+      marketingBudget: baseMkt,
+    },
+    {
+      id: 'B',
+      name: `${companyName} B (Lower Price)`,
+      sellingPrice: Math.max(1, Math.round(basePrice * 0.88)),
+      marketingBudget: baseMkt,
+    },
+    {
+      id: 'C',
+      name: `${companyName} C (Aggressive Boost)`,
+      sellingPrice: Math.max(1, Math.round(basePrice * 0.85)),
+      marketingBudget: Math.round(baseMkt * 1.5),
+    },
   ]);
+
+  useEffect(() => {
+    if (activeBusiness) {
+      const p = Number(activeBusiness.sellingPrice) || 999;
+      const m = Number(activeBusiness.marketingBudget) || 50000;
+      const cName = activeBusiness.companyName || "Strategy";
+      setStrategyInputs([
+        { id: 'A', name: `${cName} A (Baseline)`, sellingPrice: p, marketingBudget: m },
+        { id: 'B', name: `${cName} B (Lower Price)`, sellingPrice: Math.max(1, Math.round(p * 0.88)), marketingBudget: m },
+        { id: 'C', name: `${cName} C (Aggressive Boost)`, sellingPrice: Math.max(1, Math.round(p * 0.85)), marketingBudget: Math.round(m * 1.5) },
+      ]);
+    }
+  }, [activeBusiness]);
 
   const fetchComparisonData = useCallback(async () => {
     setLoading(true);
@@ -48,6 +82,11 @@ export default function StrategyComparison() {
             strategyName: s.name,
             sellingPrice: Number(s.sellingPrice),
             marketingBudget: Number(s.marketingBudget),
+            manufacturingCost: activeBusiness?.manufacturingCost ? Number(activeBusiness.manufacturingCost) : undefined,
+            productionCapacity: activeBusiness?.productionCapacity ? Number(activeBusiness.productionCapacity) : undefined,
+            productName: activeBusiness?.productName,
+            baselinePrice: basePrice,
+            baselineMarketing: baseMkt,
             timePeriodMonths: 12,
             city: "Mumbai"
           })),
@@ -64,7 +103,7 @@ export default function StrategyComparison() {
     } finally {
       setLoading(false);
     }
-  }, [targetObjective, strategyInputs]);
+  }, [targetObjective, strategyInputs, activeBusiness, basePrice, baseMkt]);
 
   useEffect(() => {
     fetchComparisonData();

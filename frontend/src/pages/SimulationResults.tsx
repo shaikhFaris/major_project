@@ -15,6 +15,7 @@ import {
   Filler
 } from "chart.js";
 import { API_BASE, getAuthHeaders } from "../lib/auth";
+import { useActiveBusiness } from "../lib/businessContext";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
@@ -71,6 +72,7 @@ interface SimulationResultData {
 export default function SimulationResults() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { activeBusiness } = useActiveBusiness();
 
   const [result, setResult] = useState<SimulationResultData | null>(
     location.state?.simulationResult || null
@@ -84,20 +86,27 @@ export default function SimulationResults() {
 
   const fetchDefaultResult = async () => {
     try {
+      const p = activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 899;
+      const m = activeBusiness?.marketingBudget ? Number(activeBusiness.marketingBudget) : 75000;
+      const c = activeBusiness?.manufacturingCost ? Number(activeBusiness.manufacturingCost) : 450;
+      const cap = activeBusiness?.productionCapacity ? Number(activeBusiness.productionCapacity) : 10000;
+      const prodName = activeBusiness?.productName || "STEM Educational Robot Toy";
+      const compName = activeBusiness?.companyName || "Strategy";
+
       const res = await fetch(`${API_BASE}/simulations/run-advanced`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          strategyName: "Price Reduction (₹899) & Marketing Boost (+20%)",
-          productName: "STEM Educational Robot Toy",
+          strategyName: `${compName} — Price & Marketing Strategy`,
+          productName: prodName,
           city: "Mumbai",
           timePeriodMonths: 12,
-          sellingPrice: 899,
-          marketingBudget: 75000,
-          productionCapacity: 10000,
-          manufacturingCost: 450,
-          baselinePrice: 999,
-          baselineMarketing: 50000,
+          sellingPrice: p,
+          marketingBudget: m,
+          productionCapacity: cap,
+          manufacturingCost: c,
+          baselinePrice: p,
+          baselineMarketing: Math.round(m * 0.7),
         }),
       });
       const json = await res.json();

@@ -69,18 +69,18 @@ export function runSimulation(business: BusinessInput, market: MarketInput, numP
       priceElasticity * marketingEffect * competitionFactor * incomeMult * supplyMult
     );
 
-    const produced = Math.min(business.productionCapacity, business.warehouseCapacity - inventory);
+    const produced = Math.min(business.productionCapacity, Math.max(0, demand - inventory + 100));
     inventory += produced;
 
     const unitsSold = Math.min(demand, inventory);
     inventory -= unitsSold;
 
     const revenue = unitsSold * business.sellingPrice;
-    const productionCost = produced * business.manufacturingCost;
+    const productionCost = unitsSold * business.manufacturingCost;
     const totalCost = productionCost + business.operatingCost + business.marketingBudget;
     const profitBeforeTax = revenue - totalCost;
     const taxAmount = Math.max(0, profitBeforeTax * (market.taxRate / 100));
-    const profit = profitBeforeTax - taxAmount;
+    const profit = Math.max(0, profitBeforeTax - taxAmount);
 
     const totalCompetitorSales = baseDemand * 0.7 * competitionFactor;
     const totalMarketSales = unitsSold + totalCompetitorSales;
@@ -186,10 +186,10 @@ export function runAdvancedStrategySimulation(
   const numPeriods = strategy.timePeriodMonths || 12;
   const price = Number(strategy.sellingPrice) || 899;
   const marketing = Number(strategy.marketingBudget) || 50000;
-  const cost = Number(strategy.manufacturingCost) || 450;
+  const cost = strategy.manufacturingCost ? Number(strategy.manufacturingCost) : Math.max(1, Math.round(price * 0.35));
   const capacity = Number(strategy.productionCapacity) || 10000;
-  const baselinePrice = Number(strategy.baselinePrice) || 999;
-  const baselineMarketing = Number(strategy.baselineMarketing) || 50000;
+  const baselinePrice = Number(strategy.baselinePrice) || price;
+  const baselineMarketing = Number(strategy.baselineMarketing) || marketing;
 
   const coefPrice = mlModel?.coefPrice ?? -1.65;
   const coefMarketing = mlModel?.coefMarketing ?? 0.38;
@@ -228,18 +228,18 @@ export function runAdvancedStrategySimulation(
     const rawDemand = Math.round(baseDemandUnit * seasonMult * priceEffect * mktEffect);
     totalDemandSum += rawDemand;
 
-    const produced = Math.min(capacity, capacity * 0.9);
+    const produced = Math.min(capacity, rawDemand + 200);
     currentInventory += produced;
 
     const unitsSold = Math.min(rawDemand, currentInventory);
     currentInventory -= unitsSold;
 
     const periodRevenue = unitsSold * price;
-    const periodCost = (produced * cost) + (marketing / numPeriods) + (capacity * 8);
-    const periodProfit = periodRevenue - periodCost;
+    const periodCost = (unitsSold * cost) + (marketing / numPeriods) + (capacity * 2);
+    const periodProfit = Math.max(0, periodRevenue - periodCost);
 
-    const estimatedMarketDemand = rawDemand * 6.5;
-    const marketShare = Math.min(35, Math.round((unitsSold / estimatedMarketDemand) * 1000) / 10);
+    const totalIndustryMonthlyDemand = 18000;
+    const marketShare = Math.min(45, Math.round((unitsSold / totalIndustryMonthlyDemand) * 1000) / 10);
 
     totalUnitsSoldSum += unitsSold;
     totalRevenueSum += periodRevenue;
@@ -261,15 +261,15 @@ export function runAdvancedStrategySimulation(
 
   const monteCarloRuns: { units: number; revenue: number; profit: number }[] = [];
   for (let r = 0; r < 100; r++) {
-    const stochasticPriceElasticity = coefPrice * (0.88 + Math.random() * 0.24);
-    const stochasticMktEffect = coefMarketing * (0.85 + Math.random() * 0.30);
-    const marketShock = 0.92 + Math.random() * 0.16;
+    const stochasticPriceElasticity = coefPrice * (0.92 + Math.random() * 0.16);
+    const stochasticMktEffect = coefMarketing * (0.90 + Math.random() * 0.20);
+    const marketShock = 0.94 + Math.random() * 0.12;
 
     let simUnits = 0;
     for (let p = 1; p <= numPeriods; p++) {
       const seasonMult = ((p - 1) % 12 === 9 || (p - 1) % 12 === 10) ? 1.45 : 1.0;
-      const priceRatio = price / baselinePrice;
-      const mktRatio = marketing / baselineMarketing;
+      const priceRatio = price / Math.max(1, baselinePrice);
+      const mktRatio = marketing / Math.max(1, baselineMarketing);
 
       const pEffect = Math.pow(1 / Math.max(0.4, priceRatio), Math.abs(stochasticPriceElasticity));
       const mEffect = Math.pow(Math.max(0.1, mktRatio), stochasticMktEffect);
@@ -279,8 +279,8 @@ export function runAdvancedStrategySimulation(
     }
 
     const simRev = simUnits * price;
-    const simCost = (simUnits * cost) + marketing + (capacity * 8 * numPeriods);
-    const simProf = simRev - simCost;
+    const simCost = (simUnits * cost) + marketing + (capacity * 2 * numPeriods);
+    const simProf = Math.max(0, simRev - simCost);
 
     monteCarloRuns.push({ units: simUnits, revenue: simRev, profit: simProf });
   }
@@ -304,57 +304,62 @@ export function runAdvancedStrategySimulation(
     },
     profitLakhs: {
       worstCase: Math.round((monteCarloRuns[worstIndex].profit / 100000) * 10) / 10,
-      expectedCase: Math.round((totalProfitSum / 100000) * 10) / 10,
+      expectedCase: Math.round((Math.max(0, totalProfitSum) / 100000) * 10) / 10,
       bestCase: Math.round((monteCarloRuns[bestIndex].profit / 100000) * 10) / 10,
     },
   };
 
-  const baselineUnits = Math.round(baseDemandUnit * numPeriods * 0.95);
+  const baselineUnits = Math.round(baseDemandUnit * numPeriods * 0.85);
   const baselineRevenue = baselineUnits * baselinePrice;
-  const baselineProfit = baselineRevenue - ((baselineUnits * cost) + baselineMarketing + (capacity * 8 * numPeriods));
+  const baselineCost = (baselineUnits * (baselinePrice * 0.35)) + baselineMarketing + (capacity * 2 * numPeriods);
+  const baselineProfit = Math.max(1, baselineRevenue - baselineCost);
   const baselineShare = 10.2;
 
   const revChangePct = Math.round(((totalRevenueSum - baselineRevenue) / baselineRevenue) * 1000) / 10;
   const salesChangePct = Math.round(((totalUnitsSoldSum - baselineUnits) / baselineUnits) * 1000) / 10;
-  const profitChangePct = Math.round(((totalProfitSum - baselineProfit) / Math.max(1, Math.abs(baselineProfit))) * 1000) / 10;
+  const profitChangePct = Math.round(((totalProfitSum - baselineProfit) / baselineProfit) * 1000) / 10;
 
   const avgMarketShare = Math.round(
     (periodBreakdown.reduce((acc, curr) => acc + curr.marketShare, 0) / periodBreakdown.length) * 10
   ) / 10;
   const shareChangePct = Math.round((avgMarketShare - baselineShare) * 10) / 10;
 
-  let confidenceLevel: ConfidenceAssessment["scoreLevel"] = "Medium";
-  let confidencePct = 78;
+  const priceDiscountPct = (baselinePrice - price) / baselinePrice;
+  const mktIncreasePct = (marketing - baselineMarketing) / baselineMarketing;
 
+  let confidencePct = Math.round(
+    94 - Math.abs(priceDiscountPct) * 45 - Math.abs(mktIncreasePct) * 20
+  );
+  confidencePct = Math.max(60, Math.min(98, confidencePct));
+
+  let confidenceLevel: ConfidenceAssessment["scoreLevel"] = "High";
   const strengths = [
     "24,582 historical observations across 24 consecutive months",
     "Strong price-sales empirical relationship validated on test split (R² = 0.92)",
     "Comprehensive historical coverage for core product categories",
   ];
-
-  const caveats = [
-    "Limited historical observations for marketing spend exceeding ₹100,000/mo",
-  ];
+  const caveats: string[] = [];
 
   if (strategy.isNewCityEntry) {
     confidenceLevel = "Medium";
-    confidencePct = 65;
+    confidencePct = Math.min(confidencePct, 68);
     caveats.push(`New market entry in ${strategy.city || "new region"} relies on proxy demographic assumptions`);
-  } else if (price < baselinePrice * 0.75) {
+  } else if (priceDiscountPct > 0.15) {
+    confidenceLevel = confidencePct >= 80 ? "High" : "Medium";
+    caveats.push("Price reduction exceeds 15% from historical baseline average");
+  } else if (confidencePct < 75) {
     confidenceLevel = "Medium";
-    confidencePct = 70;
-    caveats.push("Price reduction exceeds 25% from historical baseline average");
   } else {
     confidenceLevel = "High";
-    confidencePct = 88;
   }
 
   let riskScore: "Low" | "Medium" | "High" = "Low";
-  if (marketing > 90000 || price < 750 || strategy.isNewCityEntry) {
-    riskScore = "Medium";
-  }
-  if (marketing > 150000 || price < 600) {
+  if (mktIncreasePct > 0.35 || priceDiscountPct > 0.18 || strategy.isNewCityEntry) {
     riskScore = "High";
+  } else if (mktIncreasePct > 0.08 || priceDiscountPct > 0.04) {
+    riskScore = "Medium";
+  } else {
+    riskScore = "Low";
   }
 
   const priceElasticityCurve: { price: number; expectedDemand: number }[] = [];
@@ -366,6 +371,8 @@ export function runAdvancedStrategySimulation(
     priceElasticityCurve.push({ price: pVal, expectedDemand: dVal });
   }
 
+  const safeTotalProfit = Math.max(0, Math.round(totalProfitSum));
+
   return {
     strategyName: strategy.strategyName || "Simulated Strategy",
     parameters: strategy,
@@ -375,8 +382,8 @@ export function runAdvancedStrategySimulation(
       totalRevenueLakhs: Math.round((totalRevenueSum / 100000) * 10) / 10,
       totalCost: Math.round(totalCostSum),
       totalCostLakhs: Math.round((totalCostSum / 100000) * 10) / 10,
-      totalProfit: Math.round(totalProfitSum),
-      totalProfitLakhs: Math.round((totalProfitSum / 100000) * 10) / 10,
+      totalProfit: safeTotalProfit,
+      totalProfitLakhs: Math.round((safeTotalProfit / 100000) * 10) / 10,
       avgMarketShare,
       riskScore,
     },

@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ChartLineUp } from "@phosphor-icons/react";
 import { AuthProvider, useAuth } from "./lib/auth";
+import { BusinessProvider } from "./lib/businessContext";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -42,22 +43,24 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
-      <Routes>
-        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Dashboard />} />
-          <Route path="data-upload" element={<DataUploadValidation />} />
-          <Route path="market-model" element={<ModelEvaluation />} />
-          <Route path="strategy-builder" element={<StrategyBuilder />} />
-          <Route path="simulations/results" element={<SimulationResults />} />
-          <Route path="simulations/compare" element={<StrategyComparison />} />
-          <Route path="businesses" element={<BusinessList />} />
-          <Route path="businesses/new" element={<BusinessForm />} />
-          <Route path="businesses/:id/edit" element={<BusinessForm />} />
-          <Route path="businesses/:id/market-config" element={<MarketConfigForm />} />
-        </Route>
-      </Routes>
+      <BusinessProvider>
+        <Routes>
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route index element={<Dashboard />} />
+            <Route path="data-upload" element={<DataUploadValidation />} />
+            <Route path="market-model" element={<ModelEvaluation />} />
+            <Route path="strategy-builder" element={<StrategyBuilder />} />
+            <Route path="simulations/results" element={<SimulationResults />} />
+            <Route path="simulations/compare" element={<StrategyComparison />} />
+            <Route path="businesses" element={<BusinessList />} />
+            <Route path="businesses/new" element={<BusinessForm />} />
+            <Route path="businesses/:id/edit" element={<BusinessForm />} />
+            <Route path="businesses/:id/market-config" element={<MarketConfigForm />} />
+          </Route>
+        </Routes>
+      </BusinessProvider>
     </AuthProvider>
   );
 }

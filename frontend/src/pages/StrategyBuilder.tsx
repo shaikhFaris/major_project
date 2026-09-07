@@ -1,21 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Play, Sparkle, Sliders, Target, Buildings, CurrencyInr, CheckCircle } from "@phosphor-icons/react";
 import { API_BASE, getAuthHeaders } from "../lib/auth";
+import { useActiveBusiness } from "../lib/businessContext";
 
 export default function StrategyBuilder() {
   const navigate = useNavigate();
+  const { activeBusiness } = useActiveBusiness();
 
   const [strategyName, setStrategyName] = useState("Price Reduction & Marketing Boost");
-  const [productName, setProductName] = useState("STEM Educational Robot Toy");
+  const [productName, setProductName] = useState(activeBusiness?.productName || "STEM Educational Robot Toy");
   const [city, setCity] = useState("Mumbai");
   const [isNewCityEntry, setIsNewCityEntry] = useState(false);
   const [timePeriodMonths, setTimePeriodMonths] = useState(12);
-  const [sellingPrice, setSellingPrice] = useState(899);
-  const [marketingBudget, setMarketingBudget] = useState(75000);
-  const [productionCapacity, setProductionCapacity] = useState(10000);
-  const [manufacturingCost, setManufacturingCost] = useState(450);
+  const [sellingPrice, setSellingPrice] = useState(activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 899);
+  const [marketingBudget, setMarketingBudget] = useState(activeBusiness?.marketingBudget ? Number(activeBusiness.marketingBudget) : 75000);
+  const [productionCapacity, setProductionCapacity] = useState(activeBusiness?.productionCapacity ? Number(activeBusiness.productionCapacity) : 10000);
+  const [manufacturingCost, setManufacturingCost] = useState(activeBusiness?.manufacturingCost ? Number(activeBusiness.manufacturingCost) : 450);
   const [targetObjective, setTargetObjective] = useState<"profit" | "revenue" | "sales" | "market_share" | "minimize_risk">("profit");
+
+  useEffect(() => {
+    if (activeBusiness) {
+      if (activeBusiness.productName) setProductName(activeBusiness.productName);
+      if (activeBusiness.sellingPrice) setSellingPrice(Number(activeBusiness.sellingPrice));
+      if (activeBusiness.marketingBudget) setMarketingBudget(Number(activeBusiness.marketingBudget));
+      if (activeBusiness.productionCapacity) setProductionCapacity(Number(activeBusiness.productionCapacity));
+      if (activeBusiness.manufacturingCost) setManufacturingCost(Number(activeBusiness.manufacturingCost));
+    }
+  }, [activeBusiness]);
 
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -58,8 +70,8 @@ export default function StrategyBuilder() {
           productionCapacity: Number(productionCapacity),
           manufacturingCost: Number(manufacturingCost),
           targetObjective,
-          baselinePrice: 999,
-          baselineMarketing: 50000,
+          baselinePrice: activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 999,
+          baselineMarketing: activeBusiness?.marketingBudget ? Number(activeBusiness.marketingBudget) : 50000,
         }),
       });
 

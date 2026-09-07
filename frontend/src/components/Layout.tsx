@@ -7,9 +7,11 @@ import {
   Sliders,
   ArrowsLeftRight,
   SignOut,
-  Sparkle
+  Sparkle,
+  CheckCircle
 } from "@phosphor-icons/react";
 import { useAuth } from "../lib/auth";
+import { useActiveBusiness } from "../lib/businessContext";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: ChartLineUp, end: true },
@@ -23,6 +25,7 @@ const navItems = [
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { activeBusiness } = useActiveBusiness();
 
   return (
     <div className="flex min-h-dvh">
@@ -37,6 +40,17 @@ export default function Layout() {
             <p className="text-[11px] text-zinc-400 font-medium">Strategy Flight Simulator</p>
           </div>
         </div>
+
+        {/* Active Business Badge Card */}
+        {activeBusiness && (
+          <div className="mx-3 mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+              <CheckCircle size={12} weight="fill" /> Active Project
+            </div>
+            <p className="text-xs font-bold text-zinc-100 truncate mt-0.5">{activeBusiness.companyName}</p>
+            <p className="text-[11px] text-zinc-400 truncate">{activeBusiness.productName || activeBusiness.industry}</p>
+          </div>
+        )}
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (

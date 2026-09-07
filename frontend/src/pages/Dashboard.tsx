@@ -5,17 +5,16 @@ import {
   Cpu,
   UploadSimple,
   Sliders,
-  ArrowsLeftRight,
-  ArrowRight,
   Sparkle,
   Buildings,
-  CheckCircle,
   CurrencyInr,
   Package
 } from "@phosphor-icons/react";
 import { API_BASE, getAuthHeaders } from "../lib/auth";
+import { useActiveBusiness } from "../lib/businessContext";
 
 export default function Dashboard() {
+  const { activeBusiness } = useActiveBusiness();
   const [modelStatus, setModelStatus] = useState<any>(null);
 
   useEffect(() => {
@@ -27,6 +26,13 @@ export default function Dashboard() {
       .catch(() => {});
   }, []);
 
+  const companyName = activeBusiness?.companyName || "Mumbai Toy Business";
+  const productName = activeBusiness?.productName || "STEM Educational Robot Toy";
+  const industry = activeBusiness?.industry || "Toys & Educational Games";
+  const sellingPrice = activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 999;
+  const initialCapital = activeBusiness?.initialCapital ? Number(activeBusiness.initialCapital) : 500000;
+  const initialInventory = activeBusiness?.initialInventory ? Number(activeBusiness.initialInventory) : 2500;
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Welcome Banner */}
@@ -35,9 +41,9 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs uppercase tracking-wider mb-1">
             <Sparkle size={16} weight="bold" /> Market Simulation Platform — Active Project
           </div>
-          <h1 className="text-2xl font-black text-zinc-100">Mumbai Toy Business</h1>
+          <h1 className="text-2xl font-black text-zinc-100">{companyName}</h1>
           <p className="text-zinc-400 text-sm mt-1">
-            Industry: <strong className="text-zinc-200">Toys & Educational Games</strong> | Data Range: <strong>Jan 2024 – Dec 2025 (24 Months)</strong>
+            Product: <strong className="text-zinc-200">{productName}</strong> | Industry: <strong className="text-zinc-200">{industry}</strong> | Data Range: <strong>Jan 2024 – Dec 2025</strong>
           </p>
         </div>
 
@@ -113,11 +119,11 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">Total Sales Volume</span>
+              <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">Initial Inventory</span>
               <Package size={20} className="text-emerald-400" />
             </div>
-            <div className="mt-3 text-3xl font-black text-zinc-100 font-mono">24,582</div>
-            <p className="text-[11px] text-zinc-500 mt-1">Units sold across all regions</p>
+            <div className="mt-3 text-3xl font-black text-zinc-100 font-mono">{initialInventory.toLocaleString()}</div>
+            <p className="text-[11px] text-zinc-500 mt-1">Starting stock allocation</p>
           </div>
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
@@ -125,17 +131,17 @@ export default function Dashboard() {
               <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">Avg Selling Price</span>
               <CurrencyInr size={20} className="text-emerald-400" />
             </div>
-            <div className="mt-3 text-3xl font-black text-emerald-400 font-mono">₹999</div>
-            <p className="text-[11px] text-zinc-500 mt-1">Baseline retail price level</p>
+            <div className="mt-3 text-3xl font-black text-emerald-400 font-mono">₹{sellingPrice.toLocaleString()}</div>
+            <p className="text-[11px] text-zinc-500 mt-1">Baseline unit price</p>
           </div>
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">Total Revenue</span>
+              <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">Initial Capital</span>
               <ChartLineUp size={20} className="text-blue-400" />
             </div>
-            <div className="mt-3 text-3xl font-black text-blue-400 font-mono">₹2.45 Cr</div>
-            <p className="text-[11px] text-zinc-500 mt-1">₹24,557,418 gross revenue</p>
+            <div className="mt-3 text-3xl font-black text-blue-400 font-mono">₹{initialCapital.toLocaleString()}</div>
+            <p className="text-[11px] text-zinc-500 mt-1">Cash & working capital</p>
           </div>
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">

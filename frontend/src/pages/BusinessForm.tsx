@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { createBusiness, getBusiness, updateBusiness, type Business } from '../lib/api'
 import { Button, ErrorBanner, Field, Input, PageHeader, SectionCard, Select, Skeleton } from '../components/ui'
+import { useActiveBusiness } from '../lib/businessContext'
 
 const industries = ['Technology', 'Retail', 'Manufacturing', 'Healthcare', 'Finance', 'Education', 'Food & Beverage', 'Other']
 const businessTypes = ['B2B', 'B2C', 'D2C', 'Wholesale', 'Service']
@@ -19,6 +20,7 @@ export default function BusinessForm() {
   const { id } = useParams()
   const isEdit = !!id
   const navigate = useNavigate()
+  const { setActiveBusiness, refreshBusinesses } = useActiveBusiness()
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
   const [error, setError] = useState<string | null>(null)
@@ -67,8 +69,13 @@ export default function BusinessForm() {
       ? await updateBusiness(Number(id), payload)
       : await createBusiness(payload)
     setLoading(false)
-    if (res.success) navigate('/businesses')
-    else setError(res.error || 'Failed to save business')
+    if (res.success && res.data) {
+      setActiveBusiness(res.data)
+      await refreshBusinesses()
+      navigate('/businesses')
+    } else {
+      setError(res.error || 'Failed to save business')
+    }
   }
 
   if (fetching) {

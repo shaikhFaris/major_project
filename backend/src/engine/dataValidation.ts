@@ -22,7 +22,8 @@ export interface ValidationSummary {
     duplicateRowsCount: number;
   };
   issues: ValidationIssue[];
-  datasetPreview: any[];
+  datasetPreview: Record<string, unknown>[];
+  columns: string[];
 }
 
 export function validateDataset(rows: any[]): ValidationSummary {
@@ -50,10 +51,14 @@ export function validateDataset(rows: any[]): ValidationSummary {
         affectedColumns: [],
       }],
       datasetPreview: [],
+      columns: [],
     };
   }
 
   const totalRows = rows.length;
+  const columns = [...new Set(rows.flatMap((row) =>
+    row && typeof row === "object" ? Object.keys(row) : []
+  ))];
   const issues: ValidationIssue[] = [];
 
   let missingMarketingCount = 0;
@@ -183,6 +188,7 @@ export function validateDataset(rows: any[]): ValidationSummary {
     },
     issues,
     datasetPreview: rows.slice(0, 10),
+    columns,
   };
 }
 

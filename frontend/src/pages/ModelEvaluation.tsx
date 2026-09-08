@@ -14,6 +14,7 @@ import {
   Filler
 } from "chart.js";
 import { API_BASE, getAuthHeaders } from "../lib/auth";
+import { useActiveBusiness } from "../lib/businessContext";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -46,18 +47,24 @@ interface ModelData {
 }
 
 export default function ModelEvaluation() {
+  const { activeBusiness } = useActiveBusiness();
   const [model, setModel] = useState<ModelData | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedAlgo, setSelectedAlgo] = useState("XGBoost Regressor");
+  const [historicalRows, setHistoricalRows] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     fetchActiveModel();
-  }, []);
+  }, [activeBusiness]);
 
   const fetchActiveModel = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/models/active`, { headers: getAuthHeaders() });
+      if (!activeBusiness) return;
+      const datasetResponse = await fetch(`${API_BASE}/data/dataset?businessId=${activeBusiness.id}`, { headers: getAuthHeaders() });
+      const datasetJson = await datasetResponse.json();
+      if (datasetJson.success) setHistoricalRows(datasetJson.data.rows || []);
+      const res = await fetch(`${API_BASE}/models/active?businessId=${activeBusiness.id}`, { headers: getAuthHeaders() });
       const json = await res.json();
       if (json.success) {
         setModel(json.data);
@@ -72,10 +79,18 @@ export default function ModelEvaluation() {
   const handleRetrainModel = async () => {
     setLoading(true);
     try {
+      if (!activeBusiness) return;
+      const datasetResponse = await fetch(`${API_BASE}/data/dataset?businessId=${activeBusiness.id}`, { headers: getAuthHeaders() });
+      const datasetJson = await datasetResponse.json();
+      const dataset = datasetJson.success ? datasetJson.data.rows : [];
       const res = await fetch(`${API_BASE}/models/train`, {
         method: "POST",
         headers: getAuthHeaders(),
-        body: JSON.stringify({ algorithm: selectedAlgo }),
+        body: JSON.stringify({
+          businessId: activeBusiness.id,
+          algorithm: selectedAlgo,
+          dataset,
+        }),
       });
       const json = await res.json();
       if (json.success) {
@@ -89,11 +104,11 @@ export default function ModelEvaluation() {
   };
 
   const chartData = {
-    labels: model?.actualVsPredicted.map(p => p.period) || ["2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"],
+    labels: model?.actualVsPredicted.map(p => p.period) || historicalRows.map((row) => String(row.date || "")),
     datasets: [
       {
         label: "Actual Demand (Historical)",
-        data: model?.actualVsPredicted.map(p => p.actualDemand) || [1420, 1380, 1510, 1600, 1550, 1980, 1850, 2100],
+        data: model?.actualVsPredicted.map(p => p.actualDemand) || historicalRows.map((row) => Number(row.units_sold || row.unitsSold || 0)),
         borderColor: "#10b981",
         backgroundColor: "rgba(16, 185, 129, 0.1)",
         tension: 0.3,
@@ -102,7 +117,7 @@ export default function ModelEvaluation() {
       },
       {
         label: "Predicted Demand (ML Model)",
-        data: model?.actualVsPredicted.map(p => p.predictedDemand) || [1390, 1400, 1480, 1580, 1560, 1920, 1890, 2050],
+        data: model?.actualVsPredicted.map(p => p.predictedDemand) || [],
         borderColor: "#3b82f6",
         borderDash: [5, 5],
         tension: 0.3,
@@ -155,13 +170,13 @@ export default function ModelEvaluation() {
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
             <span className="text-base font-bold text-emerald-400">Ready</span>
           </div>
-          <span className="text-[10px] text-zinc-500 mt-1 block">Active: {model?.version || "v2.1"}</span>
+            <span className="text-[10px] text-zinc-500 mt-1 block">Active: {model?.version || "No model trained"}</span>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
           <span className="text-[11px] text-zinc-400 font-medium uppercase tracking-wider">Observations</span>
           <div className="mt-2 text-xl font-bold text-zinc-100">
-            {model?.metrics.dataPoints.toLocaleString() || "24,582"}
+            {model?.metrics.dataPoints.toLocaleString() || historicalRows.length.toLocaleString() || "—"}
           </div>
           <span className="text-[10px] text-zinc-500 mt-1 block">Data coverage period</span>
         </div>
@@ -169,7 +184,7 @@ export default function ModelEvaluation() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
           <span className="text-[11px] text-zinc-400 font-medium uppercase tracking-wider">Validation Error</span>
           <div className="mt-2 text-xl font-bold text-emerald-400">
-            {model?.metrics.validationErrorPct || 12.4}%
+            {model ? `${model.metrics.validationErrorPct}%` : "—"}
           </div>
           <span className="text-[10px] text-zinc-500 mt-1 block">MAPE score on test split</span>
         </div>
@@ -177,7 +192,7 @@ export default function ModelEvaluation() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
           <span className="text-[11px] text-zinc-400 font-medium uppercase tracking-wider">R² Score</span>
           <div className="mt-2 text-xl font-bold text-zinc-100">
-            {model?.metrics.r2 || 0.92}
+            {model?.metrics.r2 ?? "—"}
           </div>
           <span className="text-[10px] text-zinc-500 mt-1 block">Goodness of fit (0 to 1)</span>
         </div>
@@ -185,7 +200,7 @@ export default function ModelEvaluation() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
           <span className="text-[11px] text-zinc-400 font-medium uppercase tracking-wider">MAE / RMSE</span>
           <div className="mt-2 text-base font-bold text-zinc-200">
-            {model?.metrics.mae || 84} / {model?.metrics.rmse || 112}
+            {model ? `${model.metrics.mae} / ${model.metrics.rmse}` : "—"}
           </div>
           <span className="text-[10px] text-zinc-500 mt-1 block">Mean unit deviation</span>
         </div>
@@ -209,11 +224,11 @@ export default function ModelEvaluation() {
                 <ChartLineUp size={20} className="text-emerald-400" /> Actual Demand vs Predicted Demand
               </h3>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Chronological Validation Period: <strong>{model?.metrics.testingPeriod || "Nov 2025 – Dec 2025"}</strong>
+                Chronological Validation Period: <strong>{model?.metrics.testingPeriod || "Awaiting training data"}</strong>
               </p>
             </div>
             <span className="text-xs font-mono bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800 text-zinc-400">
-              MAPE: {model?.metrics.mape || 12.4}%
+              MAPE: {model ? `${model.metrics.mape}%` : "—"}
             </span>
           </div>
 

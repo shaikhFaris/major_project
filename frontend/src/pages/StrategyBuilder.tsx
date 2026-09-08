@@ -7,16 +7,18 @@ import { useActiveBusiness } from "../lib/businessContext";
 export default function StrategyBuilder() {
   const navigate = useNavigate();
   const { activeBusiness } = useActiveBusiness();
+  const baselinePrice = Number(activeBusiness?.sellingPrice || 0);
+  const baselineMarketing = Number(activeBusiness?.marketingBudget || 0);
 
   const [strategyName, setStrategyName] = useState("Price Reduction & Marketing Boost");
-  const [productName, setProductName] = useState(activeBusiness?.productName || "STEM Educational Robot Toy");
-  const [city, setCity] = useState("Mumbai");
+  const [productName, setProductName] = useState(activeBusiness?.productName || "");
+  const [city, setCity] = useState("Business market");
   const [isNewCityEntry, setIsNewCityEntry] = useState(false);
   const [timePeriodMonths, setTimePeriodMonths] = useState(12);
-  const [sellingPrice, setSellingPrice] = useState(activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 899);
-  const [marketingBudget, setMarketingBudget] = useState(activeBusiness?.marketingBudget ? Number(activeBusiness.marketingBudget) : 75000);
-  const [productionCapacity, setProductionCapacity] = useState(activeBusiness?.productionCapacity ? Number(activeBusiness.productionCapacity) : 10000);
-  const [manufacturingCost, setManufacturingCost] = useState(activeBusiness?.manufacturingCost ? Number(activeBusiness.manufacturingCost) : 450);
+  const [sellingPrice, setSellingPrice] = useState(baselinePrice);
+  const [marketingBudget, setMarketingBudget] = useState(baselineMarketing);
+  const [productionCapacity, setProductionCapacity] = useState(activeBusiness?.productionCapacity || 0);
+  const [manufacturingCost, setManufacturingCost] = useState(Number(activeBusiness?.manufacturingCost || 0));
   const [targetObjective, setTargetObjective] = useState<"profit" | "revenue" | "sales" | "market_share" | "minimize_risk">("profit");
 
   useEffect(() => {
@@ -70,8 +72,9 @@ export default function StrategyBuilder() {
           productionCapacity: Number(productionCapacity),
           manufacturingCost: Number(manufacturingCost),
           targetObjective,
-          baselinePrice: activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 999,
-          baselineMarketing: activeBusiness?.marketingBudget ? Number(activeBusiness.marketingBudget) : 50000,
+          businessId: activeBusiness?.id,
+          baselinePrice,
+          baselineMarketing,
         }),
       });
 
@@ -163,9 +166,7 @@ export default function StrategyBuilder() {
                 onChange={(e) => setProductName(e.target.value)}
                 className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-zinc-200 focus:outline-none focus:border-emerald-500"
               >
-                <option value="STEM Educational Robot Toy">STEM Educational Robot Toy (Baseline ₹999)</option>
-                <option value="Creative Building Blocks Set">Creative Building Blocks Set (Baseline ₹699)</option>
-                <option value="Speedster RC Stunt Car">Speedster RC Stunt Car (Baseline ₹1,299)</option>
+                <option value={activeBusiness?.productName}>{activeBusiness?.productName}</option>
               </select>
             </div>
 
@@ -181,9 +182,7 @@ export default function StrategyBuilder() {
                 }}
                 className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-zinc-200 focus:outline-none focus:border-emerald-500"
               >
-                <option value="Mumbai">Mumbai (Established Market)</option>
-                <option value="Delhi">Delhi (Established Market)</option>
-                <option value="Bengaluru">Bengaluru (Market Entry Simulation)</option>
+                <option value="Business market">Business market</option>
               </select>
             </div>
 
@@ -209,7 +208,7 @@ export default function StrategyBuilder() {
                   <CurrencyInr size={16} className="text-emerald-400" /> Proposed Selling Price (₹)
                 </label>
                 <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">
-                  Baseline: ₹999
+                  Baseline: ₹{baselinePrice.toLocaleString()}
                 </span>
               </div>
               <input
@@ -222,10 +221,10 @@ export default function StrategyBuilder() {
                 className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-lg font-bold text-zinc-100 focus:outline-none focus:border-emerald-500"
               />
               <p className="text-[11px] text-zinc-400">
-                {sellingPrice < 999
-                  ? `₹${999 - sellingPrice} discount (${Math.round(((999 - sellingPrice) / 999) * 100)}% price cut to stimulate demand)`
-                  : sellingPrice > 999
-                  ? `₹${sellingPrice - 999} premium price (+${Math.round(((sellingPrice - 999) / 999) * 100)}% price increase)`
+                {sellingPrice < baselinePrice
+                  ? `₹${baselinePrice - sellingPrice} discount (${Math.round(((baselinePrice - sellingPrice) / baselinePrice) * 100)}% price cut to stimulate demand)`
+                  : sellingPrice > baselinePrice
+                  ? `₹${sellingPrice - baselinePrice} premium price (+${Math.round(((sellingPrice - baselinePrice) / baselinePrice) * 100)}% price increase)`
                   : "Baseline price level"}
               </p>
             </div>
@@ -236,7 +235,7 @@ export default function StrategyBuilder() {
                   <CurrencyInr size={16} className="text-emerald-400" /> Monthly Marketing Budget (₹)
                 </label>
                 <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">
-                  Baseline: ₹50,000
+                  Baseline: ₹{baselineMarketing.toLocaleString()}
                 </span>
               </div>
               <input
@@ -250,8 +249,8 @@ export default function StrategyBuilder() {
                 className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-lg font-bold text-zinc-100 focus:outline-none focus:border-emerald-500"
               />
               <p className="text-[11px] text-zinc-400">
-                {marketingBudget > 50000
-                  ? `+${Math.round(((marketingBudget - 50000) / 50000) * 100)}% marketing boost above baseline`
+                {marketingBudget > baselineMarketing
+                  ? `+${Math.round(((marketingBudget - baselineMarketing) / baselineMarketing) * 100)}% marketing boost above baseline`
                   : "Standard marketing allocation"}
               </p>
             </div>

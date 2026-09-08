@@ -14,6 +14,7 @@ import ModelEvaluation from "./pages/ModelEvaluation";
 import StrategyBuilder from "./pages/StrategyBuilder";
 import SimulationResults from "./pages/SimulationResults";
 import StrategyComparison from "./pages/StrategyComparison";
+import BusinessRequired from "./components/BusinessRequired";
 
 function AppLoading() {
   return (
@@ -50,10 +51,10 @@ export default function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="data-upload" element={<DataUploadValidation />} />
-            <Route path="market-model" element={<ModelEvaluation />} />
-            <Route path="strategy-builder" element={<StrategyBuilder />} />
-            <Route path="simulations/results" element={<SimulationResults />} />
-            <Route path="simulations/compare" element={<StrategyComparison />} />
+            <Route path="market-model" element={<BusinessRequired><ModelEvaluation /></BusinessRequired>} />
+            <Route path="strategy-builder" element={<BusinessRequired><StrategyBuilder /></BusinessRequired>} />
+            <Route path="simulations/results" element={<BusinessRequired><SimulationResults /></BusinessRequired>} />
+            <Route path="simulations/compare" element={<BusinessRequired><StrategyComparison /></BusinessRequired>} />
             <Route path="businesses" element={<BusinessList />} />
             <Route path="businesses/new" element={<BusinessForm />} />
             <Route path="businesses/:id/edit" element={<BusinessForm />} />

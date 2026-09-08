@@ -85,13 +85,14 @@ export default function SimulationResults() {
   }, []);
 
   const fetchDefaultResult = async () => {
+    if (!activeBusiness) return;
     try {
-      const p = activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 899;
-      const m = activeBusiness?.marketingBudget ? Number(activeBusiness.marketingBudget) : 75000;
-      const c = activeBusiness?.manufacturingCost ? Number(activeBusiness.manufacturingCost) : 450;
-      const cap = activeBusiness?.productionCapacity ? Number(activeBusiness.productionCapacity) : 10000;
-      const prodName = activeBusiness?.productName || "STEM Educational Robot Toy";
-      const compName = activeBusiness?.companyName || "Strategy";
+      const p = Number(activeBusiness.sellingPrice);
+      const m = Number(activeBusiness.marketingBudget);
+      const c = Number(activeBusiness.manufacturingCost);
+      const cap = activeBusiness.productionCapacity;
+      const prodName = activeBusiness.productName;
+      const compName = activeBusiness.companyName;
 
       const res = await fetch(`${API_BASE}/simulations/run-advanced`, {
         method: "POST",
@@ -99,7 +100,8 @@ export default function SimulationResults() {
         body: JSON.stringify({
           strategyName: `${compName} — Price & Marketing Strategy`,
           productName: prodName,
-          city: "Mumbai",
+          businessId: activeBusiness.id,
+          city: "Business market",
           timePeriodMonths: 12,
           sellingPrice: p,
           marketingBudget: m,
@@ -200,7 +202,7 @@ export default function SimulationResults() {
           </div>
           <h1 className="text-2xl font-bold text-zinc-100">{result.strategyName}</h1>
           <p className="text-zinc-400 text-sm mt-1">
-            Target Product: <strong>{result.parameters.productName || "Toy"}</strong> | Price: <strong>₹{result.parameters.sellingPrice}</strong> | Marketing: <strong>₹{result.parameters.marketingBudget.toLocaleString()}/mo</strong> | Region: <strong>{result.parameters.city || "Mumbai"}</strong>
+            Target Product: <strong>{result.parameters.productName}</strong> | Price: <strong>₹{result.parameters.sellingPrice}</strong> | Marketing: <strong>₹{result.parameters.marketingBudget.toLocaleString()}/mo</strong> | Region: <strong>{result.parameters.city}</strong>
           </p>
         </div>
 

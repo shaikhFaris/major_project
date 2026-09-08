@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Business, listBusinesses } from './api';
+import { useAuth } from './auth';
 
 interface BusinessContextType {
   businesses: Business[];
@@ -12,6 +13,7 @@ interface BusinessContextType {
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
 
 export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading: authLoading } = useAuth();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [activeBusiness, setActiveBusinessState] = useState<Business | null>(() => {
     const saved = localStorage.getItem('active_business');
@@ -32,6 +34,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const refreshBusinesses = async (): Promise<Business[]> => {
+    setLoading(true);
     try {
       const res = await listBusinesses();
       if (res.success && res.data) {
@@ -63,8 +66,18 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   useEffect(() => {
-    refreshBusinesses();
-  }, []);
+    if (authLoading) return;
+
+    if (user) {
+      refreshBusinesses();
+      return;
+    }
+
+    setBusinesses([]);
+    setActiveBusinessState(null);
+    localStorage.removeItem('active_business');
+    setLoading(false);
+  }, [authLoading, user?.id]);
 
   return (
     <BusinessContext.Provider

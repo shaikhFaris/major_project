@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import {
   ChartLineUp,
   Buildings,
@@ -25,7 +25,9 @@ const navItems = [
 
 export default function Layout() {
   const { user, logout } = useAuth();
-  const { activeBusiness } = useActiveBusiness();
+  const { activeBusiness, businesses, loading } = useActiveBusiness();
+  const location = useLocation();
+  const isCreatingBusiness = location.pathname === "/businesses/new";
 
   return (
     <div className="flex min-h-dvh">
@@ -97,6 +99,17 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
+
+      {!loading && businesses.length === 0 && !isCreatingBusiness && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-emerald-500/30 bg-zinc-900 p-7 text-center shadow-2xl">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400"><Buildings size={24} weight="bold" /></div>
+            <h2 className="mt-4 text-xl font-bold text-zinc-100">Add your first business</h2>
+            <p className="mt-2 text-sm text-zinc-400">Create a business project to unlock your dashboard, market model, and simulations.</p>
+            <Link to="/businesses/new" className="mt-6 inline-flex rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-500">Create business project</Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

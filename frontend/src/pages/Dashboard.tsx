@@ -18,20 +18,34 @@ export default function Dashboard() {
   const [modelStatus, setModelStatus] = useState<any>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/models/active`, { headers: getAuthHeaders() })
+    if (!activeBusiness) return;
+    fetch(`${API_BASE}/models/active?businessId=${activeBusiness.id}`, { headers: getAuthHeaders() })
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setModelStatus(json.data);
       })
       .catch(() => {});
-  }, []);
+  }, [activeBusiness]);
 
-  const companyName = activeBusiness?.companyName || "Mumbai Toy Business";
-  const productName = activeBusiness?.productName || "STEM Educational Robot Toy";
-  const industry = activeBusiness?.industry || "Toys & Educational Games";
-  const sellingPrice = activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 999;
-  const initialCapital = activeBusiness?.initialCapital ? Number(activeBusiness.initialCapital) : 500000;
-  const initialInventory = activeBusiness?.initialInventory ? Number(activeBusiness.initialInventory) : 2500;
+  if (!activeBusiness) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="w-full max-w-5xl min-h-[410px] flex flex-col items-center justify-center text-center border border-dashed border-zinc-800 rounded-2xl px-6">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center"><Buildings size={28} weight="bold" /></div>
+          <h1 className="mt-6 text-2xl font-bold text-zinc-100">No businesses yet</h1>
+          <p className="mt-2 max-w-xl text-zinc-400">Set up your first company to start testing pricing, marketing, and inventory strategies.</p>
+          <Link to="/businesses/new" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-500"><span className="text-lg">+</span> Create your first business</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const companyName = activeBusiness.companyName;
+  const productName = activeBusiness.productName;
+  const industry = activeBusiness.industry;
+  const sellingPrice = Number(activeBusiness.sellingPrice);
+  const initialCapital = Number(activeBusiness.initialCapital);
+  const initialInventory = activeBusiness.initialInventory;
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -88,7 +102,7 @@ export default function Dashboard() {
 
           <div className="bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800/80">
             <span className="text-[11px] text-zinc-500 block uppercase font-medium">Data Points</span>
-            <span className="text-sm font-bold font-mono text-zinc-200 mt-1 block">24,582</span>
+            <span className="text-sm font-bold font-mono text-zinc-200 mt-1 block">{modelStatus?.metrics?.dataPoints?.toLocaleString() || "—"}</span>
           </div>
 
           <div className="bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800/80">
@@ -98,7 +112,7 @@ export default function Dashboard() {
 
           <div className="bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800/80">
             <span className="text-[11px] text-zinc-500 block uppercase font-medium">Validation Error</span>
-            <span className="text-sm font-bold font-mono text-emerald-400 mt-1 block">12.4% (MAPE)</span>
+            <span className="text-sm font-bold font-mono text-emerald-400 mt-1 block">{modelStatus?.metrics?.validationErrorPct ? `${modelStatus.metrics.validationErrorPct}% (MAPE)` : "—"}</span>
           </div>
 
           <div className="bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800/80">

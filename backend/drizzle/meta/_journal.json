@@ -15,6 +15,13 @@
       "when": 1784796603574,
       "tag": "0001_military_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788969600000,
+      "tag": "0002_historical_business_data",
+      "breakpoints": true
     }
   ]
 }

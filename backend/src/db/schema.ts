@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, decimal, integer, text, timestamp, foreignKey } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, decimal, integer, text, timestamp, jsonb } from "drizzle-orm/pg-core";
 
 // ── Users ────────────────────────────────────────────────
 export const users = pgTable("users", {
@@ -27,6 +27,8 @@ export const businesses = pgTable("businesses", {
   marketingBudget: decimal("marketing_budget", { precision: 14, scale: 2 }).notNull(),
   advertisingChannel: varchar("advertising_channel", { length: 100 }).notNull(),
   promotionFrequency: varchar("promotion_frequency", { length: 50 }).notNull(),
+  historicalData: jsonb("historical_data").$type<Record<string, unknown>[] | null>(),
+  historicalFileName: varchar("historical_file_name", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

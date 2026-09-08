@@ -32,9 +32,9 @@ export default function StrategyComparison() {
   const [targetObjective, setTargetObjective] = useState<"profit" | "revenue" | "sales" | "market_share" | "minimize_risk">("profit");
   const [loading, setLoading] = useState(false);
 
-  const basePrice = activeBusiness?.sellingPrice ? Number(activeBusiness.sellingPrice) : 999;
-  const baseMkt = activeBusiness?.marketingBudget ? Number(activeBusiness.marketingBudget) : 50000;
-  const companyName = activeBusiness?.companyName || "Strategy";
+  const basePrice = Number(activeBusiness?.sellingPrice || 0);
+  const baseMkt = Number(activeBusiness?.marketingBudget || 0);
+  const companyName = activeBusiness?.companyName || "";
 
   const [strategyInputs, setStrategyInputs] = useState([
     {
@@ -59,8 +59,8 @@ export default function StrategyComparison() {
 
   useEffect(() => {
     if (activeBusiness) {
-      const p = Number(activeBusiness.sellingPrice) || 999;
-      const m = Number(activeBusiness.marketingBudget) || 50000;
+      const p = Number(activeBusiness.sellingPrice);
+      const m = Number(activeBusiness.marketingBudget);
       const cName = activeBusiness.companyName || "Strategy";
       setStrategyInputs([
         { id: 'A', name: `${cName} A (Baseline)`, sellingPrice: p, marketingBudget: m },
@@ -88,7 +88,8 @@ export default function StrategyComparison() {
             baselinePrice: basePrice,
             baselineMarketing: baseMkt,
             timePeriodMonths: 12,
-            city: "Mumbai"
+            businessId: activeBusiness?.id,
+            city: "Business market"
           })),
         }),
       });

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UploadSimple, DownloadSimple, CheckCircle, Warning, Broom, Sparkle, Table, ArrowRight, FileCsv } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { API_BASE, getAuthHeaders } from "../lib/auth";
+import { useActiveBusiness } from "../lib/businessContext";
 
 interface ValidationIssue {
   id: string;
@@ -66,6 +67,7 @@ function formatCell(value: unknown): string {
 }
 
 export default function DataUploadValidation() {
+  const { activeBusiness } = useActiveBusiness();
   const [dataRows, setDataRows] = useState<any[]>([]);
   const [summary, setSummary] = useState<ValidationSummary | null>(null);
   const [loading, setLoading] = useState(false);
@@ -74,6 +76,37 @@ export default function DataUploadValidation() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [removeDuplicates, setRemoveDuplicates] = useState(true);
   const [fillMissing, setFillMissing] = useState(true);
+
+  useEffect(() => {
+    if (!activeBusiness) return;
+    fetch(`${API_BASE}/data/dataset?businessId=${activeBusiness.id}`, { headers: getAuthHeaders() })
+      .then((res) => res.json())
+      .then(async (json) => {
+        if (!json.success || !json.data.rows?.length) return;
+        setDataRows(json.data.rows);
+        setFileName(json.data.fileName || "saved_historical_data.csv");
+        const validation = await fetch(`${API_BASE}/data/validate`, {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ rows: json.data.rows }),
+        });
+        const validationJson = await validation.json();
+        if (validationJson.success) setSummary(validationJson.data);
+      })
+      .catch(() => setUploadError("The saved historical data could not be loaded."));
+  }, [activeBusiness]);
+
+  const saveDataset = async (rows: Record<string, unknown>[], name: string) => {
+    if (!activeBusiness) return false;
+    const response = await fetch(`${API_BASE}/data/dataset`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ businessId: activeBusiness.id, rows, fileName: name }),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.error || "The dataset could not be saved.");
+    return true;
+  };
 
   const previewColumns = summary?.columns ?? [...new Set(dataRows.flatMap((row) => Object.keys(row)))];
 
@@ -109,6 +142,7 @@ export default function DataUploadValidation() {
         if (valJson.success) {
           setDataRows(parsedRows);
           setSummary(valJson.data);
+          await saveDataset(parsedRows, file.name);
           setFileName(file.name);
           setCleanSuccess("New dataset uploaded and validated successfully.");
         } else {
@@ -141,6 +175,7 @@ export default function DataUploadValidation() {
       if (json.success) {
         setDataRows(json.data.cleanedRows);
         setSummary(json.data.validation);
+        await saveDataset(json.data.cleanedRows, fileName || "cleaned_historical_data.csv");
         setCleanSuccess("Dataset cleaned successfully! Missing values filled and duplicates resolved.");
       } else {
         setUploadError(json.error || "The dataset could not be cleaned.");
@@ -148,6 +183,27 @@ export default function DataUploadValidation() {
     } catch (err) {
       console.error("Clean error:", err);
       setUploadError("The dataset could not be cleaned. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteDataset = async () => {
+    if (!activeBusiness || !window.confirm("Delete this historical dataset? This cannot be undone.")) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/data/dataset?businessId=${activeBusiness.id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      const json = await response.json();
+      if (!json.success) throw new Error(json.error || "The dataset could not be deleted.");
+      setDataRows([]);
+      setSummary(null);
+      setFileName(null);
+      setCleanSuccess("Historical dataset deleted.");
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "The dataset could not be deleted.");
     } finally {
       setLoading(false);
     }
@@ -342,12 +398,12 @@ export default function DataUploadValidation() {
             </h3>
             <p className="text-xs text-zinc-400 mt-0.5">{dataRows.length ? `Showing the first ${Math.min(dataRows.length, 7)} rows from the uploaded CSV.` : "Choose a CSV to see its columns and rows here."}</p>
           </div>
-          <Link
-            to="/market-model"
-            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20"
-          >
-            Proceed to Build Model <ArrowRight size={14} weight="bold" />
-          </Link>
+          <div className="flex items-center gap-2">
+            {dataRows.length > 0 && <button onClick={handleDeleteDataset} className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 font-semibold rounded-xl text-xs border border-red-500/20">Delete saved data</button>}
+            <Link to="/market-model" className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20">
+              Proceed to Build Model <ArrowRight size={14} weight="bold" />
+            </Link>
+          </div>
         </div>
 
         <div className="overflow-x-auto border border-zinc-800 rounded-xl">

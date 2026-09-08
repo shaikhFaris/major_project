@@ -76,9 +76,9 @@ simulationsRouter.post("/", async (req: AuthRequest, res: Response) => {
 // POST /api/simulations/run-advanced — Run ML-driven strategy simulation with uncertainty & constraints
 simulationsRouter.post("/run-advanced", async (req: AuthRequest, res: Response) => {
   try {
-    const strategy: StrategyInput = req.body;
+    const strategy: StrategyInput & { businessId?: number } = req.body;
 
-    if (!strategy || !strategy.sellingPrice) {
+    if (!strategy || !strategy.businessId || !strategy.sellingPrice || !strategy.marketingBudget) {
       return res.status(400).json({
         success: false,
         data: null,
@@ -86,7 +86,19 @@ simulationsRouter.post("/run-advanced", async (req: AuthRequest, res: Response) 
       });
     }
 
-    const result = runAdvancedStrategySimulation(strategy);
+    const [business] = await db.select().from(schema.businesses).where(eq(schema.businesses.id, strategy.businessId));
+    if (!business || business.userId !== req.userId!) {
+      return res.status(404).json({ success: false, data: null, error: "Business not found" });
+    }
+
+    const result = runAdvancedStrategySimulation({
+      ...strategy,
+      productName: business.productName,
+      manufacturingCost: strategy.manufacturingCost ?? Number(business.manufacturingCost),
+      productionCapacity: strategy.productionCapacity ?? business.productionCapacity,
+      baselinePrice: Number(business.sellingPrice),
+      baselineMarketing: Number(business.marketingBudget),
+    });
 
     return res.json({
       success: true,
@@ -104,13 +116,10 @@ simulationsRouter.post("/compare-scenarios", async (req: AuthRequest, res: Respo
   try {
     const { strategies, targetObjective = "profit" } = req.body;
 
-    const defaultStrategies: StrategyInput[] = strategies && Array.isArray(strategies) && strategies.length > 0
-      ? strategies
-      : [
-          { strategyName: "Baseline Strategy A", sellingPrice: 999, marketingBudget: 50000, timePeriodMonths: 12 },
-          { strategyName: "Price Cut Strategy B", sellingPrice: 899, marketingBudget: 50000, timePeriodMonths: 12 },
-          { strategyName: "Aggressive Marketing Strategy C", sellingPrice: 899, marketingBudget: 75000, timePeriodMonths: 12 },
-        ];
+    if (!Array.isArray(strategies) || strategies.length === 0) {
+      return res.status(400).json({ success: false, data: null, error: "At least one business strategy is required" });
+    }
+    const defaultStrategies: StrategyInput[] = strategies;
 
     const results = defaultStrategies.map((strat) => {
       return runAdvancedStrategySimulation({ ...strat, targetObjective });

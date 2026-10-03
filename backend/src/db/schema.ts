@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, decimal, integer, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, decimal, integer, text, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 
 // ── Users ────────────────────────────────────────────────
 export const users = pgTable("users", {
@@ -57,6 +57,36 @@ export const simulations = pgTable("simulations", {
   marketConfigId: integer("market_config_id").notNull().references(() => marketConfigs.id, { onDelete: "cascade" }),
   strategyLabel: varchar("strategy_label", { length: 100 }),
   status: varchar("status", { length: 50 }).default("pending").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── Car Datasets (parallel module) ──────────────────────
+// A company's uploaded car dataset, kept separate from `businesses.historicalData`
+// so the car-prediction module can evolve without touching the business schema.
+export const carDatasets = pgTable("car_datasets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  fileName: varchar("file_name", { length: 255 }),
+  rowCount: integer("row_count").notNull().default(0),
+  rows: jsonb("rows").$type<Record<string, unknown>[]>().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── Car Predictions (parallel module) ───────────────────
+// One row per predicted car. Inputs are stored alongside outputs so a prediction
+// stays reproducible even after the model is retrained.
+export const carPredictions = pgTable("car_predictions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  datasetId: integer("dataset_id").references(() => carDatasets.id, { onDelete: "set null" }),
+  modelVersion: varchar("model_version", { length: 100 }).notNull(),
+  inputs: jsonb("inputs").$type<Record<string, unknown>>().notNull(),
+  price: decimal("price", { precision: 14, scale: 2 }).notNull(),
+  unitsSold: decimal("units_sold", { precision: 14, scale: 2 }).notNull(),
+  revenue: decimal("revenue", { precision: 14, scale: 2 }).notNull(),
+  profit: decimal("profit", { precision: 14, scale: 2 }).notNull(),
+  priceWasPredicted: boolean("price_was_predicted").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

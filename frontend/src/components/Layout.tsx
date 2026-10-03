@@ -8,7 +8,8 @@ import {
   ArrowsLeftRight,
   SignOut,
   Sparkle,
-  CheckCircle
+  CheckCircle,
+  Car
 } from "@phosphor-icons/react";
 import { useAuth } from "../lib/auth";
 import { useActiveBusiness } from "../lib/businessContext";
@@ -21,6 +22,7 @@ const navItems = [
   { to: "/simulations/results", label: "Results & Analytics", icon: Sparkle },
   { to: "/simulations/compare", label: "Compare Scenarios", icon: ArrowsLeftRight },
   { to: "/businesses", label: "Business Projects", icon: Buildings },
+  { to: "/cars", label: "Car Prediction", icon: Car },
 ];
 
 export default function Layout() {

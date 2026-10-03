@@ -14,6 +14,7 @@ import ModelEvaluation from "./pages/ModelEvaluation";
 import StrategyBuilder from "./pages/StrategyBuilder";
 import SimulationResults from "./pages/SimulationResults";
 import StrategyComparison from "./pages/StrategyComparison";
+import CarPrediction from "./pages/CarPrediction";
 import BusinessRequired from "./components/BusinessRequired";
 
 function AppLoading() {
@@ -55,6 +56,7 @@ export default function App() {
             <Route path="strategy-builder" element={<BusinessRequired><StrategyBuilder /></BusinessRequired>} />
             <Route path="simulations/results" element={<BusinessRequired><SimulationResults /></BusinessRequired>} />
             <Route path="simulations/compare" element={<BusinessRequired><StrategyComparison /></BusinessRequired>} />
+            <Route path="cars" element={<CarPrediction />} />
             <Route path="businesses" element={<BusinessList />} />
             <Route path="businesses/new" element={<BusinessForm />} />
             <Route path="businesses/:id/edit" element={<BusinessForm />} />

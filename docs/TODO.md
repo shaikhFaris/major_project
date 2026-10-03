@@ -32,6 +32,14 @@
 - [ ] `cd frontend && npx tsc --noEmit` (verify TypeScript compiles)
 - [ ] Test full loop end-to-end: register → create business → market config → run simulation → view dashboard
 
+## Parallel track — Car Prediction module
+- [x] `ml-service/`: `features.py`, `model_schema.py`, `train.py`, `main.py`, requirements
+- [x] Backend `/api/cars/*` routes + `car_datasets` / `car_predictions` schema
+- [x] Frontend `Car Prediction` page + nav entry
+- [ ] Apply the new migration (`cd backend && npx drizzle-kit generate && npx drizzle-kit migrate`)
+- [ ] Place the Kaggle dataset at `ml-service/data/vehicle_sales.csv` and run `python train.py`
+- [ ] Add `ML_SERVICE_URL` to `backend/.env`
+
 ## Do not start yet (Phase 2+, out of scope for now)
 - Individual customer/competitor agents
 - ML service, forecasting models

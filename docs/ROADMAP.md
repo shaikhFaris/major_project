@@ -98,6 +98,21 @@ a user can export a simulation's results as a report.
 
 ---
 
+## Parallel track — Car Prediction module
+Runs alongside the phased plan above (not part of the 15-module sequence). A company
+uploads a car dataset and gets price/demand/revenue/profit predictions from a model
+pre-trained on a large vehicle-sales dataset.
+
+- [x] `ml-service/` scaffolded: FastAPI app, shared feature schema, `train.py`
+- [x] Backend `/api/cars/*` routes orchestrating the ML service; `car_datasets` +
+      `car_predictions` tables
+- [x] Frontend `Car Prediction` page: upload, preview, predict, save history
+- [ ] Download the Kaggle "Vehicle Sales Data" CSV into `ml-service/data/`
+- [ ] Run `python train.py` and confirm real (not derived) metrics
+- [ ] Verify end-to-end: upload CSV → predict → results persist
+
+---
+
 ## Explicitly out of scope (unless this changes later)
 - Real payment or live trading integrations — this is a simulator, not a live system
 - Multi-tenant / enterprise account structures

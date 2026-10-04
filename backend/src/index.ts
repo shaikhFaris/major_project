@@ -7,6 +7,8 @@ import { marketConfigsRouter } from "./routes/marketConfigs.js";
 import { simulationsRouter } from "./routes/simulations.js";
 import { dataUploadRouter } from "./routes/dataUpload.js";
 import { mlRouter } from "./routes/mlRoutes.js";
+import { carPredictionsRouter } from "./routes/carPredictions.js";
+import { usedCarsRouter } from "./routes/usedCars.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,6 +30,8 @@ app.use("/api/market-configs", marketConfigsRouter);
 app.use("/api/simulations", simulationsRouter);
 app.use("/api/data", dataUploadRouter);
 app.use("/api/models", mlRouter);
+app.use("/api/cars", carPredictionsRouter);
+app.use("/api/used-cars", usedCarsRouter);
 
 // 404 handler
 app.use((_req, res) => {

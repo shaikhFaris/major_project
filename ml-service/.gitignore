@@ -1,0 +1,10 @@
+# Data files are large and often licensed — never commit them.
+data/
+models/
+_uploaded_training_data.csv
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/

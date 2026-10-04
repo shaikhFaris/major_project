@@ -84,6 +84,56 @@ Trend charts depend on the complete period-by-period history.
 
 ---
 
+## Car Prediction module (parallel to the business simulation)
+
+This module runs alongside the Phase 1 business/market simulation and shares only the
+`users` table. It is served by the Python ML service (`ml-service/`) through the Node
+backend at `/api/cars/*`.
+
+### `car_datasets`
+| Column | Type | Notes |
+|---|---|---|
+| id | SERIAL, PRIMARY KEY | |
+| user_id | INT, FK → `users.id` | cascade on delete |
+| name | VARCHAR(255) | user-facing label |
+| file_name | VARCHAR(255) | original uploaded filename |
+| row_count | INT | number of rows stored |
+| rows | JSONB | the dataset rows, keyed by column name |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
+
+### `car_predictions`
+| Column | Type | Notes |
+|---|---|---|
+| id | SERIAL, PRIMARY KEY | |
+| user_id | INT, FK → `users.id` | cascade on delete |
+| dataset_id | INT, FK → `car_datasets.id` | nullable; `set null` on delete |
+| model_version | VARCHAR(100) | version string of the model that produced this row |
+| inputs | JSONB | the car's input features, for reproducibility |
+| price | DECIMAL(14,2) | predicted or supplied price |
+| units_sold | DECIMAL(14,2) | predicted demand |
+| revenue | DECIMAL(14,2) | predicted revenue |
+| profit | DECIMAL(14,2) | predicted profit |
+| price_was_predicted | BOOLEAN | true when the caller omitted price |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
+
+### Canonical car dataset schema
+Both the pre-training dataset and a company's uploaded CSV use these columns:
+
+**Required inputs:** `make, year, price, marketing_spend, discount_pct,
+competitor_price, region`
+
+**Targets:** `units_sold, revenue, profit` (plus `price` when a row omits it)
+
+The schema is deliberately minimal — these are the demand levers a simulation
+varies, plus the market dimensions (brand, region) and vehicle age. Anything a
+source file is missing is filled from the medians learned at training time, so a
+CSV containing only a subset of these columns still predicts. `month` is accepted
+and used for seasonality when deriving targets, but is not a model feature.
+Column aliases (e.g. Kaggle's `sellingprice` → `price`, `state` → `region`,
+`mmr` → `competitor_price`) are handled by `ml-service/features.py`.
+
+---
+
 ## Phase 2 additions
 
 ### `customers`

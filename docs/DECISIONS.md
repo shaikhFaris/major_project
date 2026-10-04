@@ -31,6 +31,28 @@ emoji/Lucide), self-hosted fonts via `@fontsource-variable`, and a shared UI kit
 B2B tool, not a consumer site); the three chart series colors (emerald/amber/sky)
 are the one documented exception to the single-accent rule, reserved for data viz.
 
+## Car prediction module built in parallel, not as a replacement
+The car-prediction feature (upload a company's car dataset, predict price/demand/
+revenue/profit) was added as a sibling module — `/api/cars/*`, `car_datasets` +
+`car_predictions` tables, and a `Car Prediction` page — rather than by rewriting the
+existing business/market simulation. The two share only `users`, so the working
+Phase 1 loop keeps running while the ML work matures. See `ROADMAP.md`.
+
+## Minimal car dataset schema (7 required inputs)
+The car schema was trimmed from ~19 columns to `make, year, price,
+marketing_spend, discount_pct, competitor_price, region` (+ the targets). Spec
+fields (engine, power, mileage, seats, odometer, body/fuel/transmission/segment/
+condition) were dropped because no public dataset supplies them consistently and
+no company realistically has them per sale — the seven that remain are the demand
+levers a simulation actually varies, and anything missing is median-imputed.
+
+## Pre-trained model artifacts instead of training on request
+`ml-service/train.py` runs offline against a large vehicle-sales dataset and writes
+joblib artifacts plus a metadata JSON; the FastAPI service only loads and serves them.
+This keeps inference fast and stateless, and means a missing model is a clear 503
+rather than a slow first request. The company's uploaded CSV is used as *input rows*
+to predict on, or optionally to fine-tune via `POST /train`.
+
 ---
 
 ## Template for new entries

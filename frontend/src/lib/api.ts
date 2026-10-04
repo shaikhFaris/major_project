@@ -165,3 +165,35 @@ export function getSimulationResults(id: number) {
 export function listSimulations() {
   return request<Simulation[]>('GET', '/simulations');
 }
+
+// ── Used-Car Market Platform ──────────────────────────────
+
+export const ucApi = {
+  audit:         ()       => request<any>('GET',  '/used-cars/audit'),
+  market:        ()       => request<any>('GET',  '/used-cars/market'),
+  demand:        (b: any) => request<any>('POST', '/used-cars/demand', b),
+  geographic:    (p?: { transport_cost?: number; reconditioning_cost?: number; platform_fee_pct?: number }) => {
+    const qs = p ? `?transport_cost=${p.transport_cost ?? 5000}&reconditioning_cost=${p.reconditioning_cost ?? 20000}&platform_fee_pct=${p.platform_fee_pct ?? 2}` : '';
+    return request<any>('GET', `/used-cars/geographic${qs}`);
+  },
+  segments:      ()       => request<any>('GET',  '/used-cars/segments'),
+  opportunity:   (b: any) => request<any>('POST', '/used-cars/opportunity', b),
+  acquire:       (b: any) => request<any>('POST', '/used-cars/acquire', b),
+  allocate:      (b: any) => request<any>('POST', '/used-cars/allocate', b),
+  priceStrategy: (b: any) => request<any>('POST', '/used-cars/price-strategy', b),
+  backtest:      (b: any) => request<any>('POST', '/used-cars/backtest', b),
+  whatif:        (b: any) => request<any>('POST', '/used-cars/whatif', b),
+  explain:       ()       => request<any>('GET',  '/used-cars/explain'),
+  predictPrice:  (b: any) => request<any>('POST', '/used-cars/predict-price', b),
+
+  // Inventory CRUD
+  listInventory:   ()       => request<any[]>('GET',   '/used-cars/inventory'),
+  addInventory:    (b: any) => request<any>  ('POST',  '/used-cars/inventory', b),
+  updateInventory: (id: number, b: any) => request<any>('PATCH', `/used-cars/inventory/${id}`, b),
+  deleteInventory: (id: number)         => request<any>('DELETE', `/used-cars/inventory/${id}`),
+
+  // Strategy CRUD
+  listStrategies:   ()       => request<any[]>('GET',    '/used-cars/strategies'),
+  saveStrategy:     (b: any) => request<any>  ('POST',   '/used-cars/strategies', b),
+  deleteStrategy:   (id: number)          => request<any>('DELETE', `/used-cars/strategies/${id}`),
+};

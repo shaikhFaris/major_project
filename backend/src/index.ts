@@ -12,9 +12,18 @@ import { usedCarsRouter } from "./routes/usedCars.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const frontendOrigins = process.env.FRONTEND_ORIGIN
+  ? process.env.FRONTEND_ORIGIN.split(",").map((origin) => origin.trim()).filter(Boolean)
+  : [];
 
 // Middleware
-app.use(cors());
+if (frontendOrigins.length > 0) {
+  app.use(
+    cors({
+      origin: frontendOrigins,
+    })
+  );
+}
 app.use(express.json({ limit: "25mb" }));
 app.use(express.urlencoded({ limit: "25mb", extended: true }));
 

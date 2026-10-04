@@ -71,3 +71,4 @@ AGENTS.md
 - [`docs/DATABASE.md`](docs/DATABASE.md) — PostgreSQL schema, by phase
 - [`docs/API.md`](docs/API.md) — REST endpoint contract
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — architecture decision log
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deployment checklist and environment setup

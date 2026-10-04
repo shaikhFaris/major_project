@@ -40,6 +40,11 @@
 - [ ] Place the Kaggle dataset at `ml-service/data/vehicle_sales.csv` and run `python train.py`
 - [ ] Add `ML_SERVICE_URL` to `backend/.env`
 
+## Deployment prep
+- [x] Add deployment playbook for managed Postgres + backend/frontend build/start commands
+- [x] Document `/api` reverse proxy requirement for frontend static hosting
+- [x] Add optional `FRONTEND_ORIGIN` env handling for cross-origin deployments
+
 ## Do not start yet (Phase 2+, out of scope for now)
 - Individual customer/competitor agents
 - ML service, forecasting models

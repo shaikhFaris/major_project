@@ -25,7 +25,7 @@ Used-Car Market Platform endpoints:
     POST /used-cars/predict-price
 
 Run:
-    uvicorn main:app --reload --port 8000
+    python -m uvicorn main:app --reload --port 8000
 """
 
 from __future__ import annotations

@@ -1,25 +1,14 @@
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import {
-  ChartLineUp, Buildings, UploadSimple, Cpu, Sliders, ArrowsLeftRight,
-  SignOut, Sparkle, CheckCircle, Car, Gauge, MapPin, MagnifyingGlass,
-  ShoppingCart, Scales, ChartBar, Storefront, Robot, ArrowsClockwise,
-  Warning, Star
+  ChartLineUp, Buildings, Cpu, SignOut, CheckCircle, Car, Gauge, MapPin,
+  MagnifyingGlass, ShoppingCart, Scales, ChartBar, Storefront, Robot,
+  ArrowsClockwise, Warning, Star
 } from "@phosphor-icons/react";
 import { useAuth } from "../lib/auth";
 import { useActiveBusiness } from "../lib/businessContext";
 
-const generalNavItems = [
-  { to: "/", label: "Dashboard", icon: ChartLineUp, end: true },
-  { to: "/data-upload", label: "Upload & Validate", icon: UploadSimple },
-  { to: "/market-model", label: "Market Model & ML", icon: Cpu },
-  { to: "/strategy-builder", label: "Strategy Builder", icon: Sliders },
-  { to: "/simulations/results", label: "Results & Analytics", icon: Sparkle },
-  { to: "/simulations/compare", label: "Compare Scenarios", icon: ArrowsLeftRight },
-  { to: "/businesses", label: "Business Projects", icon: Buildings },
-];
-
 const usedCarNavItems = [
-  { to: "/used-cars", label: "UC Dashboard", icon: Gauge, end: true },
+  { to: "/used-cars", label: " Dashboard", icon: Gauge, end: true },
   { to: "/used-cars/audit", label: "Data Audit", icon: MagnifyingGlass },
   { to: "/used-cars/market", label: "Market Analysis", icon: ChartBar },
   { to: "/used-cars/demand", label: "Demand Analysis", icon: Star },
@@ -35,7 +24,7 @@ const usedCarNavItems = [
   { to: "/used-cars/explain", label: "ML Explainability", icon: Cpu },
 ];
 
-function NavSection({ title, items }: { title: string; items: typeof generalNavItems }) {
+function NavSection({ title, items }: { title: string; items: typeof usedCarNavItems }) {
   return (
     <div>
       <p className="px-3.5 pt-4 pb-1 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">{title}</p>
@@ -77,17 +66,7 @@ export default function Layout() {
           </div>
         </div>
 
-        {activeBusiness && (
-          <div className="mx-3 mt-2 p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl shrink-0">
-            <div className="flex items-center gap-1.5 text-[9px] font-bold text-emerald-400 uppercase tracking-wider">
-              <CheckCircle size={10} weight="fill" /> Active Project
-            </div>
-            <p className="text-xs font-bold text-zinc-100 truncate mt-0.5">{activeBusiness.companyName}</p>
-          </div>
-        )}
-
         <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-          <NavSection title="General Platform" items={generalNavItems} />
           <NavSection title="Used-Car Reseller" items={usedCarNavItems} />
         </nav>
 
@@ -114,16 +93,6 @@ export default function Layout() {
         </div>
       </main>
 
-      {!loading && businesses.length === 0 && !isCreatingBusiness && !location.pathname.startsWith("/used-cars") && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-emerald-500/30 bg-zinc-900 p-7 text-center shadow-2xl">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400"><Buildings size={24} weight="bold" /></div>
-            <h2 className="mt-4 text-xl font-bold text-zinc-100">Add your first business</h2>
-            <p className="mt-2 text-sm text-zinc-400">Create a business project to unlock your dashboard, market model, and simulations.</p>
-            <Link to="/businesses/new" className="mt-6 inline-flex rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-500">Create business project</Link>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

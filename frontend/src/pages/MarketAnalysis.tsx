@@ -8,10 +8,39 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const chartOpts: any = {
   responsive: true,
-  plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx: any) => ` ₹${(ctx.raw / 100000).toFixed(1)}L` } } },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: (ctx: any) => `₹${(ctx.raw / 100000).toFixed(1)}L`,
+      },
+    },
+  },
   scales: {
     x: { ticks: { color: "#71717a", font: { size: 10 } }, grid: { color: "#27272a" } },
     y: { ticks: { color: "#71717a", font: { size: 10 }, callback: (v: any) => `₹${(v / 100000).toFixed(0)}L` }, grid: { color: "#27272a" } },
+  },
+};
+
+const countChartOpts: any = {
+  ...chartOpts,
+  plugins: {
+    ...chartOpts.plugins,
+    tooltip: {
+      callbacks: {
+        label: (ctx: any) => `Listings: ${ctx.raw}`,
+      },
+    },
+  },
+  scales: {
+    ...chartOpts.scales,
+    y: {
+      ...chartOpts.scales.y,
+      ticks: {
+        ...chartOpts.scales.y.ticks,
+        callback: (v: any) => v,
+      },
+    },
   },
 };
 
@@ -60,7 +89,7 @@ export default function MarketAnalysis() {
 
   const activeTab = tabs.find(t => t.key === tab)!;
   const priceOpts = { ...chartOpts };
-  const countOpts = { ...chartOpts, scales: { ...chartOpts.scales, y: { ...chartOpts.scales.y, ticks: { ...chartOpts.scales.y.ticks, callback: (v: any) => v } } } };
+  const countOpts = countChartOpts;
 
   return (
     <div className="space-y-8 max-w-6xl">

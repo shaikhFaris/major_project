@@ -35,7 +35,7 @@ export default function UsedCarDashboard() {
   useEffect(() => {
     ucApi.market()
       .then(r => { if (r.success) setMarket(r.data); else setError(r.error || "Failed to load market data"); })
-      .catch(() => setError("ML service unreachable. Start it with: uvicorn main:app --reload --port 8000"))
+      .catch(() => setError("ML service unreachable. Start it with: python -m uvicorn main:app --reload --port 8000"))
       .finally(() => setLoading(false));
   }, []);
 

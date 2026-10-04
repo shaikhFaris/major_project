@@ -180,8 +180,8 @@ def compute_demand_scores(df: pd.DataFrame) -> pd.DataFrame:
     This is NOT actual consumer demand — it is a listing-frequency proxy.
     More listings → higher market activity → higher demand score.
     """
-    counts = df.groupby(["make", "model"])["price"].count().rename("listing_count")
-    df = df.merge(counts, on=["make", "model"], how="left")
+    df = df.copy()
+    df["listing_count"] = df.groupby(["make", "model"])["price"].transform("count")
 
     max_count = df["listing_count"].max()
     min_count = df["listing_count"].min()

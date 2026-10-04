@@ -49,7 +49,7 @@ export default function RiskDashboard() {
         if (s.success) setSegments(s.data);
         if (!m.success) setError(m.error || "Failed to load");
       })
-      .catch(() => setError("ML service unreachable. Start: uvicorn main:app --reload --port 8000"))
+      .catch(() => setError("ML service unreachable. Start: python -m uvicorn main:app --reload --port 8000"))
       .finally(() => setLoading(false));
   }, []);
 

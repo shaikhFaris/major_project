@@ -53,7 +53,7 @@ Writes `models/{price,units_sold,revenue,profit}_model.joblib` and
 ## Run
 
 ```bash
-uvicorn main:app --reload --port 8000
+python -m uvicorn main:app --reload --port 8000
 ```
 
 | Method | Path | Purpose |

@@ -51,7 +51,7 @@ AGENTS.md
 - Frontend dev server: `cd frontend && npm run dev`
 - Backend dev server: `cd backend && npm run dev`
 - Backend tests: `cd backend && npm test`
-- ML service dev server (Phase 2+): `cd ml-service && uvicorn main:app --reload`
+- ML service dev server (Phase 2+): `cd ml-service && python -m uvicorn main:app --reload --port 8000`
 - ML service tests (Phase 2+): `cd ml-service && pytest`
 
 If any of these commands don't exist yet in a fresh checkout, that's expected early on —

@@ -29,6 +29,13 @@
       "when": 1791032091044,
       "tag": "0003_majestic_karnak",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791113465582,
+      "tag": "0004_add_car_inventory",
+      "breakpoints": true
     }
   ]
 }

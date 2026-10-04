@@ -11,7 +11,7 @@ export default function MlExplainability() {
   useEffect(() => {
     ucApi.explain()
       .then(r => { if (r.success) setData(r.data); else setError(r.error || "Model not trained"); })
-      .catch(() => setError("ML service unreachable. Start: uvicorn main:app --reload --port 8000"))
+      .catch(() => setError("ML service unreachable. Start: python -m uvicorn main:app --reload --port 8000"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -26,7 +26,7 @@ export default function MlExplainability() {
 {`cd major_project/ml-service
 pip install -r requirements.txt
 python used_car_train.py
-uvicorn main:app --reload --port 8000`}
+python -m uvicorn main:app --reload --port 8000`}
         </pre>
       </Card>
     </div>

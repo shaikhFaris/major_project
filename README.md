@@ -47,7 +47,7 @@ npm run dev
 # ml-service (Phase 2 onward, new terminal)
 cd ml-service
 pip install -r requirements.txt
-uvicorn main:app --reload
+python -m uvicorn main:app --reload --port 8000
 ```
 
 ## Project structure

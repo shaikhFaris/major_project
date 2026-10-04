@@ -13,7 +13,7 @@ export default function DataAudit() {
   useEffect(() => {
     ucApi.audit()
       .then(r => { if (r.success) setData(r.data); else setError(r.error || "Failed"); })
-      .catch(() => setError("ML service unreachable. Start: uvicorn main:app --reload --port 8000"))
+      .catch(() => setError("ML service unreachable. Start: python -m uvicorn main:app --reload --port 8000"))
       .finally(() => setLoading(false));
   }, []);
 

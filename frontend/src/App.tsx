@@ -79,7 +79,7 @@ export default function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
 
             {/* ── General Platform ── */}
-            <Route index element={<Dashboard />} />
+            <Route index element={<Navigate to="/used-cars" replace />} />
             <Route path="data-upload" element={<DataUploadValidation />} />
             <Route path="market-model" element={<BusinessRequired><ModelEvaluation /></BusinessRequired>} />
             <Route path="strategy-builder" element={<BusinessRequired><StrategyBuilder /></BusinessRequired>} />

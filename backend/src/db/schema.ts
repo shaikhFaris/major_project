@@ -105,3 +105,46 @@ export const simulationResults = pgTable("simulation_results", {
   cost: decimal("cost", { precision: 14, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ── Car Inventory (used-car reseller module) ──────────────────────────
+// Tracks vehicles the reseller has purchased or is watching.
+export const carInventory = pgTable("car_inventory", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  make: varchar("make", { length: 100 }).notNull(),
+  model: varchar("model", { length: 100 }).notNull(),
+  variant: varchar("variant", { length: 200 }),
+  makeYear: integer("make_year").notNull(),
+  mileage: integer("mileage").notNull(),
+  fuelType: varchar("fuel_type", { length: 50 }),
+  bodyType: varchar("body_type", { length: 50 }),
+  transmission: varchar("transmission", { length: 50 }),
+  color: varchar("color", { length: 50 }),
+  noOfOwners: integer("no_of_owners").default(1),
+  city: varchar("city", { length: 100 }),
+  acquisitionPrice: decimal("acquisition_price", { precision: 14, scale: 2 }).notNull(),
+  targetSellingPrice: decimal("target_selling_price", { precision: 14, scale: 2 }),
+  estimatedMarketValue: decimal("estimated_market_value", { precision: 14, scale: 2 }),
+  reconditioningCost: decimal("reconditioning_cost", { precision: 14, scale: 2 }).default("20000"),
+  status: varchar("status", { length: 50 }).default("in_inventory").notNull(),
+  demandScore: decimal("demand_score", { precision: 5, scale: 1 }),
+  opportunityScore: decimal("opportunity_score", { precision: 5, scale: 1 }),
+  riskScore: decimal("risk_score", { precision: 5, scale: 1 }),
+  notes: text("notes"),
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+  listedAt: timestamp("listed_at"),
+  soldAt: timestamp("sold_at"),
+  soldPrice: decimal("sold_price", { precision: 14, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── Car Strategies (used-car reseller module) ─────────────────────────
+// Saved acquisition strategy configurations + backtest results.
+export const carStrategies = pgTable("car_strategies", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 200 }).notNull(),
+  parameters: jsonb("parameters").$type<Record<string, unknown>>().notNull(),
+  backtestResults: jsonb("backtest_results").$type<Record<string, unknown> | null>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
